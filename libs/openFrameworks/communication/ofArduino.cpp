@@ -566,39 +566,46 @@ void ofArduino::processDigitalPort(int port, unsigned char value){
     case 0: // pins 2-7  (0,1 are ignored as serial RX/TX)
         for(i=2; i<8; ++i) {
             pin = i;
-            if(_digitalPinMode[pin]==ARD_INPUT){
-                previous = _digitalHistory[pin].front();
+            mask = 1 << i;
+            if(_digitalPinMode[pin]==ARD_INPUT) {
+	        if (_digitalHistory[pin].size() > 0) {
+		    previous = _digitalHistory[pin].front();
+		    
+		    _digitalHistory[pin].push_front((value & mask)>>i);
 
-                mask = 1 << i;
-                _digitalHistory[pin].push_front((value & mask)>>i);
+		    if((int)_digitalHistory[pin].size()>_digitalHistoryLength)
+		        _digitalHistory[pin].pop_back();
 
-                if((int)_digitalHistory[pin].size()>_digitalHistoryLength)
-                        _digitalHistory[pin].pop_back();
-
-                // trigger an event if the pin has changed value
-                if(_digitalHistory[pin].front()!=previous){
-                    ofNotifyEvent(EDigitalPinChanged, pin, this);
-                }
+					// trigger an event if the pin has changed value
+		    if(_digitalHistory[pin].front() != previous) {
+		        ofNotifyEvent(EDigitalPinChanged, pin, this);
+		    }
+		} else {
+		    _digitalHistory[pin].push_front((value & mask)>>i);
+		}
             }
         }
         break;
     case 1: // pins 8-13 (in Firmata 2.3/Arduino 1.0, pins 14 and 15 are analog 0 and 1)
         for(i=0; i<port1Pins; ++i) {
             pin = i+8;
+            mask = 1 << i;
+            if(_digitalPinMode[pin]==ARD_INPUT) {
+	        if (_digitalHistory[pin].size() > 0) {
+		    previous = _digitalHistory[pin].front();
+		    
+		    _digitalHistory[pin].push_front((value & mask)>>i);
 
-            if(_digitalPinMode[pin]==ARD_INPUT){
-                previous = _digitalHistory[pin].front();
+		    if((int)_digitalHistory[pin].size()>_digitalHistoryLength)
+		        _digitalHistory[pin].pop_back();
 
-                mask = 1 << i;
-                _digitalHistory[pin].push_front((value & mask)>>i);
-
-                if((int)_digitalHistory[pin].size()>_digitalHistoryLength)
-                    _digitalHistory[pin].pop_back();
-
-                // trigger an event if the pin has changed value
-                if(_digitalHistory[pin].front()!=previous){
-                    ofNotifyEvent(EDigitalPinChanged, pin, this);
-                }
+					// trigger an event if the pin has changed value
+		    if(_digitalHistory[pin].front() != previous) {
+		        ofNotifyEvent(EDigitalPinChanged, pin, this);
+		    }
+		} else {
+		    _digitalHistory[pin].push_front((value & mask)>>i);
+		}
             }
         }
         break;
